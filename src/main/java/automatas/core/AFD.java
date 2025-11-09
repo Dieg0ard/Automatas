@@ -11,17 +11,17 @@ import java.util.Set;
  *
  * @author diego
  */
-public class AFND implements Automata{
+public class AFD implements Automata {
 
-    private final Set<String> estados;
-    private final Set<Character> alfabeto;
-    private final Map<String, Map<Character, Set<String>>> transiciones;
-    private final String estadoInicial;
-    private final Set<String> estadosFinales;
+    private Set<String> estados;
+    private Set<Character> alfabeto;
+    private Map<String, Map<Character, String>> transiciones;
+    private String estadoInicial;
+    private Set<String> estadosFinales;
     
-    public AFND(Set<String> estados,
+    public AFD(Set<String> estados,
                Set<Character> alfabeto,
-               Map<String, Map<Character, Set<String>>> transiciones,
+               Map<String, Map<Character, String>> transiciones,
                String estadoInicial,
                Set<String> estadosFinales) {
         this.estados = estados;
@@ -32,22 +32,24 @@ public class AFND implements Automata{
     }
 
     @Override
-    public Set<String> getEstados() {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
-    }
-
-    @Override
-    public String getEstadoInicial() {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    public boolean acepta(String cadena) {
+        String estadoActual = estadoInicial;
+        for (char simbolo : cadena.toCharArray()) {
+            if (!transiciones.containsKey(estadoActual)) return false;
+            Map<Character, String> mapa = transiciones.get(estadoActual);
+            if (!mapa.containsKey(simbolo)) return false;
+            estadoActual = mapa.get(simbolo);
+        }
+        return estadosFinales.contains(estadoActual);
     }
 
     @Override
     public Set<String> getEstadosFinales() {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+        return estadosFinales;
     }
 
     @Override
-    public boolean acepta(String cadena) {
+    public Set<String> getEstados() {
         throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
     }
 
@@ -55,5 +57,9 @@ public class AFND implements Automata{
     public Set<Character> getAlfabeto() {
         throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
     }
-    
+
+    @Override
+    public String getEstadoInicial() {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    }
 }
