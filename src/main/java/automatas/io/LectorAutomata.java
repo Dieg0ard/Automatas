@@ -49,7 +49,7 @@ public class LectorAutomata {
             estados.add(destino);
 
             // transición vacía (ε)
-            Character simbolo = simboloStr.equals("ε") ? null : simboloStr.charAt(0);
+            Character simbolo = simboloStr.equals("~") ? null : simboloStr.charAt(0);
             if (simbolo != null) alfabeto.add(simbolo);
 
             transiciones
@@ -58,14 +58,11 @@ public class LectorAutomata {
                 .add(destino);
         }
 
-        // Por simplicidad, asumimos que el archivo incluye líneas especiales:
-        // #INICIAL:q0
-        // #FINALES:q2;q3
         for (String linea : lineas) {
-            if (linea.startsWith("#INICIAL:")) {
+            if (linea.startsWith("#INICIAL")) {
                 estadoInicial = linea.substring(9).trim();
-            } else if (linea.startsWith("#FINALES:")) {
-                String[] finales = linea.substring(9).split(";");
+            } else if (linea.startsWith("#FINALES")) {
+                String[] finales = linea.substring(9).split(",");
                 for (String f : finales) estadosFinales.add(f.trim());
             }
         }
@@ -97,8 +94,8 @@ public class LectorAutomata {
             for (var entrada : estado.entrySet()) {
                 Character simbolo = entrada.getKey();
                 Set<String> destinos = entrada.getValue();
-                if (simbolo == null) return false;           // transición ε
-                if (destinos.size() > 1) return false;       // no determinista
+                if (simbolo == null) return false;         
+                if (destinos.size() > 1) return false;       
             }
         }
         return true;
