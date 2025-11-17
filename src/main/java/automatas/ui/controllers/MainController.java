@@ -2,6 +2,7 @@ package automatas.ui.controllers;
 
 import automatas.core.Automata;
 import automatas.io.LectorAutomata;
+import automatas.visual.AutomataRenderer;
 
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
@@ -12,6 +13,7 @@ import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 
 import java.io.File;
+import java.io.IOException;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -68,15 +70,14 @@ public class MainController {
     /**
      * Muestra la imagen generada del autómata en el ImageView
      */
-    private void mostrarAutomataImagen(File archivoAutomata) {
+    private void mostrarAutomataImagen(File archivoAutomata) throws IOException {
 
-        // Aquí debes usar LA RUTA donde tu programa genera la imagen del autómata
-        // Este es un EJEMPLO:
-        //
-        //    /ruta/carpeta/automata.png
-        //
-        // Cámbialo por lo que corresponda.
-        String rutaImagen = archivoAutomata.getParent() + "/automata.png";
+        AutomataRenderer ar = null;
+        LectorAutomata lector = null;
+        Automata automata = lector.leerDesdeCSV(archivoAutomata.getPath());
+        ar.renderAutomata(automata);
+        String userHome = System.getProperty("user.home");
+        String rutaImagen = userHome + "/.automatas/img/automata.png";
 
         File imgFile = new File(rutaImagen);
 
