@@ -70,7 +70,7 @@ public class MainController {
     /**
      * Muestra la imagen generada del autómata en el ImageView
      */
-    private void mostrarAutomataImagen(File archivoAutomata) throws IOException {
+    void mostrarAutomataImagen(File archivoAutomata) throws IOException {
 
         AutomataRenderer ar = null;
         LectorAutomata lector = null;
@@ -99,6 +99,12 @@ public class MainController {
             );
 
             Parent root = loader.load();
+
+            // Obtener el controller de la ventana cargada
+            AutomataManualController ctrl = loader.getController();
+
+            // Pasar la referencia del MainController (this)
+            ctrl.setMainController(this);
 
             Stage stage = new Stage();
             stage.setTitle("Crear Autómata Manualmente");

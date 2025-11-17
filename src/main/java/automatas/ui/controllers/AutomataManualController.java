@@ -1,6 +1,11 @@
 package automatas.ui.controllers;
 
+import automatas.core.AFD;
+import automatas.core.AFND;
+import automatas.io.EscritorAutomata;
 import automatas.ui.models.TransicionRow;
+import java.io.File;
+import java.io.IOException;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.collections.FXCollections;
@@ -12,22 +17,32 @@ import javafx.scene.control.cell.TextFieldTableCell;
 import javafx.stage.Stage;
 
 import java.util.HashMap;
-import java.util.List;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 public class AutomataManualController {
 
-    @FXML private TextField txtAlfabeto;
-    @FXML private TextField txtNuevoEstado;
-    @FXML private ListView<String> listaEstados;
-    @FXML private ComboBox<String> comboInicial;
-    @FXML private ListView<String> listaFinales;   // seguirá mostrando nombres, pero con checkboxes
+    @FXML
+    private TextField txtAlfabeto;
+    @FXML
+    private TextField txtNuevoEstado;
+    @FXML
+    private ListView<String> listaEstados;
+    @FXML
+    private ComboBox<String> comboInicial;
+    @FXML
+    private ListView<String> listaFinales;   // seguirá mostrando nombres, pero con checkboxes
 
-    @FXML private TableView<TransicionRow> tablaTransiciones;
-    @FXML private TableColumn<TransicionRow, String> colOrigen;
-    @FXML private TableColumn<TransicionRow, String> colSimbolo;
-    @FXML private TableColumn<TransicionRow, String> colDestino;
+    @FXML
+    private TableView<TransicionRow> tablaTransiciones;
+    @FXML
+    private TableColumn<TransicionRow, String> colOrigen;
+    @FXML
+    private TableColumn<TransicionRow, String> colSimbolo;
+    @FXML
+    private TableColumn<TransicionRow, String> colDestino;
 
     private final ObservableList<String> estados = FXCollections.observableArrayList();
     private final ObservableList<String> posiblesFinales = FXCollections.observableArrayList();
@@ -35,6 +50,8 @@ public class AutomataManualController {
 
     // mapa estado -> propiedad booleana que indica si es final (para las casillas)
     private final Map<String, BooleanProperty> finalesMap = new HashMap<>();
+
+    private MainController mainController;
 
     @FXML
     public void initialize() {
@@ -80,18 +97,23 @@ public class AutomataManualController {
     private void agregarEstado() {
         String estado = txtNuevoEstado.getText().trim();
 
-        if (estado.isEmpty()) return;
+        if (estado.isEmpty()) {
+            return;
+        }
         if (estados.contains(estado)) {
             mostrarError("El estado ya existe.");
             return;
         }
 
+        // Crear la propiedad booleana para el estado final antes de agregarlo
+        BooleanProperty esFinal = new SimpleBooleanProperty(false);
+        finalesMap.put(estado, esFinal);
+
+        // Agregar a la lista de estados y a la lista de posibles finales
         estados.add(estado);
-        posiblesFinales.add(estado);
+        posiblesFinales.add(estado); // listaFinales usará finalesMap para los checkboxes
 
-        // inicialmente no es final
-        finalesMap.put(estado, new SimpleBooleanProperty(false));
-
+        // Limpiar el campo de texto
         txtNuevoEstado.clear();
     }
 
@@ -151,38 +173,104 @@ public class AutomataManualController {
     @FXML
     private void eliminarTransicion() {
         TransicionRow sel = tablaTransiciones.getSelectionModel().getSelectedItem();
-        if (sel != null) transiciones.remove(sel);
+        if (sel != null) {
+            transiciones.remove(sel);
+        }
     }
 
     // =============================================
     // CREAR AUTOMATA
     // =============================================
     @FXML
-    private void crearAutomata() {
+    private void crearAutomata() throws IOException {
 
-        System.out.println("=== Datos del Autómata ===");
-        System.out.println("Alfabeto: " + txtAlfabeto.getText());
-        System.out.println("Estados: " + estados);
-        System.out.println("Inicial: " + comboInicial.getValue());
+        // ==============================
+        // Recolectar datos base
+        // ==============================
+        Set<String> Q = new HashSet<>(estados);
+        Set<String> F = finalesMap.entrySet().stream()
+                .filter(entry -> entry.getValue().get()) // solo los que están marcados
+                .map(Map.Entry::getKey)
+                .collect(Collectors.toSet());
 
-        // recoger finales consultando el mapa
-        List<String> finales = posiblesFinales.stream()
-                .filter(s -> {
-                    BooleanProperty p = finalesMap.get(s);
-                    return p != null && p.get();
-                })
-                .collect(Collectors.toList());
-
-        System.out.println("Finales: " + finales);
-
-        System.out.println("Transiciones: ");
-        for (TransicionRow tr : transiciones) {
-            System.out.println("  " + tr.getOrigen() + " --" + tr.getSimbolo() + "--> " + tr.getDestino());
+        String q0 = comboInicial.getValue();
+        if (q0 == null) {
+            mostrarError("Debes seleccionar un estado inicial.");
+            return;
         }
 
-        // Aquí construirías tu objeto Automata con (estados, alfabeto, inicial, finales, transiciones)
-        // Ejemplo: Automata a = AutomataFactory.fromManual(...)
+        // Alfabeto como Set<Character>
+        Set<Character> Sigma = txtAlfabeto.getText().chars()
+                .mapToObj(c -> (char) c)
+                .filter(c -> c != ',' && !Character.isWhitespace(c))
+                .collect(Collectors.toSet());
 
+        // ==============================
+        // Construir transiciones
+        // ==============================
+        Map<String, Map<Character, String>> deltaAFD = new HashMap<>();
+        Map<String, Map<Character, Set<String>>> deltaAFND = new HashMap<>();
+        boolean esAFND = false;
+
+        for (String estado : Q) {
+            deltaAFD.put(estado, new HashMap<>());
+            deltaAFND.put(estado, new HashMap<>());
+        }
+
+        for (TransicionRow tr : transiciones) {
+
+            String origen = tr.getOrigen();
+            String simboloStr = tr.getSimbolo();
+            String destino = tr.getDestino();
+
+            if (simboloStr.isEmpty() || simboloStr.equals("ε") || simboloStr.equals("lambda")) {
+                esAFND = true;
+            }
+
+            if (simboloStr.length() != 1) {
+                mostrarError("Los símbolos deben ser caracteres individuales: " + simboloStr);
+                return;
+            }
+            Character simbolo = simboloStr.charAt(0);
+
+            // Construcción AFND
+            deltaAFND.get(origen).putIfAbsent(simbolo, new HashSet<>());
+            deltaAFND.get(origen).get(simbolo).add(destino);
+
+            // Construcción AFD
+            Map<Character, String> mapaAFD = deltaAFD.get(origen);
+            if (mapaAFD.containsKey(simbolo)) {
+                esAFND = true;
+            } else {
+                mapaAFD.put(simbolo, destino);
+            }
+        }
+
+        // ==============================
+        // Crear el autómata correcto
+        // ==============================
+        if (!esAFND) {
+            AFD afd = new AFD(Q, Sigma, deltaAFD, q0, F);
+            System.out.println("SE CREÓ UN AFD");
+            //System.out.println(afd);
+            EscritorAutomata escritor = null;
+            String userHome = System.getProperty("user.home");
+            String rutaCSV = userHome + "/.automatas/csv/afd.csv";
+            escritor.guardarAFD(afd, rutaCSV);
+            mainController.mostrarAutomataImagen(new File(rutaCSV));
+
+            cerrar();
+            return;
+        }
+
+        AFND afnd = new AFND(Q, Sigma, deltaAFND, q0, F);
+        System.out.println("SE CREÓ UN AFND");
+        //System.out.println(afnd);
+        EscritorAutomata escritor = null;
+        String userHome = System.getProperty("user.home");
+        String rutaCSV = userHome + "/.automatas/csv/afd.csv";
+        escritor.guardarAFND(afnd, rutaCSV);
+        mainController.mostrarAutomataImagen(new File(rutaCSV));
         cerrar();
     }
 
@@ -203,5 +291,9 @@ public class AutomataManualController {
         alert.setHeaderText("Error");
         alert.setContentText(msg);
         alert.showAndWait();
+    }
+
+    public void setMainController(MainController mainController) {
+        this.mainController = mainController;
     }
 }
