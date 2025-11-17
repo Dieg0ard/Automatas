@@ -48,7 +48,11 @@ public class AFND implements Automata {
 
     @Override
     public Set<Character> getAlfabeto() {
-        return alfabeto;
+        return alfabeto;    
+    }
+    
+    public Map<String, Map<Character, Set<String>>> getTransiciones(){
+        return transiciones;
     }
 
     @Override

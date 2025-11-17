@@ -66,5 +66,9 @@ public class AFD implements Automata {
     public Set<String> getEstadosFinales() {
         return estadosFinales;
     }
+    
+    public Map<String, Map<Character, String>> getTransiciones(){
+        return transiciones;
+    }
 
 }
