@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane xmlns="http://javafx.com/javafx/21"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="automatas.ui.controllers.AutomataManualController">
+
+    <center>
+        <VBox spacing="12">
+            <padding>
+                <Insets top="20" right="20" bottom="20" left="20"/>
+            </padding>
+
+            <Label text="Crear Autómata Manualmente" style="-fx-font-size: 18px;"/>
+
+            <HBox spacing="10">
+                <Label text="Alfabeto (ej: a,b,c):" minWidth="150"/>
+                <TextField fx:id="txtAlfabeto" />
+            </HBox>
+
+            <HBox spacing="10">
+                <Label text="Estados:" minWidth="150"/>
+                <VBox spacing="5">
+                    <HBox spacing="5">
+                        <TextField fx:id="txtNuevoEstado" promptText="Nombre del estado"/>
+                        <Button text="Agregar" onAction="#agregarEstado"/>
+                    </HBox>
+                    <ListView fx:id="listaEstados" prefHeight="120"/>
+                    <Button text="Eliminar seleccionado" onAction="#eliminarEstado"/>
+                </VBox>
+            </HBox>
+
+            <HBox spacing="10">
+                <Label text="Estado inicial:" minWidth="150"/>
+                <ComboBox fx:id="comboInicial"/>
+            </HBox>
+
+            <HBox spacing="10">
+                <Label text="Estados finales:" minWidth="150"/>
+                <ListView fx:id="listaFinales" prefHeight="120" />
+            </HBox>
+
+            <VBox spacing="8">
+                <Label text="Transiciones:"/>
+                <TableView fx:id="tablaTransiciones" prefHeight="200">
+                    <columns>
+                        <TableColumn fx:id="colOrigen" text="Origen" prefWidth="120"/>
+                        <TableColumn fx:id="colSimbolo" text="Símbolo" prefWidth="120"/>
+                        <TableColumn fx:id="colDestino" text="Destino" prefWidth="120"/>
+                    </columns>
+                </TableView>
+
+                <HBox spacing="8">
+                    <Button text="Agregar transición" onAction="#agregarTransicion"/>
+                    <Button text="Eliminar transición" onAction="#eliminarTransicion"/>
+                </HBox>
+            </VBox>
+
+        </VBox>
+    </center>
+
+    <bottom>
+        <HBox spacing="10" alignment="center">
+            <padding>
+                <Insets top="10" right="10" bottom="10" left="10"/>
+            </padding>
+            <Button text="Crear Autómata" onAction="#crearAutomata" style="-fx-font-weight: bold;"/>
+            <Button text="Cancelar" onAction="#cerrar"/>
+        </HBox>
+    </bottom>
+
+</BorderPane>

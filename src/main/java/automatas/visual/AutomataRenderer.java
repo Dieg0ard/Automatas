@@ -1,7 +1,5 @@
 package automatas.visual;
 
-import automatas.core.AFD;
-import automatas.core.AFND;
 import automatas.core.Automata;
 import guru.nidi.graphviz.engine.Format;
 import guru.nidi.graphviz.engine.Graphviz;
@@ -20,9 +18,11 @@ public class AutomataRenderer {
      */
     public static void renderAutomata(Automata a) throws IOException {
         String dot = AutomataDotGenerator.generarDot(a);
+        String userHome = System.getProperty("user.home");
+        String outPath = userHome + "/.automatas/img/automata.png";
         Graphviz.fromString(dot)
                 .render(Format.PNG)
-                .toFile(new File(".output/automatas/automata.png"));
+                .toFile(new File(outPath));
     }
 
 }
