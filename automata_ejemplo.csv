@@ -1,14 +1,14 @@
-#INICIAL,q0
-#FINALES,q3,q1,q2
+#INICIAL,x
+#FINALES,w
 
-q0,~,q1
-q0,~,q2
+x,a,yp
+x,b,z
 
-q1,0,q1
-q1,1,q3
+yp,a,w
+yp,b,yp
 
-q2,0,q2
-q2,1,q3
+z,a,yp
+z,b,yp
 
-q3,0,q3
-q3,1,q3
+w,a,w
+w,b,yp

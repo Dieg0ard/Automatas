@@ -42,6 +42,8 @@ public interface Automata {
     /**
      * Muestra una representación textual del autómata (por consola o string).
      */
+    
+    
     default void mostrar() {
         System.out.println("Estados: " + getEstados());
         System.out.println("Alfabeto: " + getAlfabeto());
