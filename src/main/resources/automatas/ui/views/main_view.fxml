@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.geometry.Insets?>
+
+<BorderPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="automatas.ui.controllers.MainController"
+            prefWidth="1000"
+            prefHeight="600">
+
+    <!-- PANEL IZQUIERDO -->
+    <left>
+        <VBox spacing="20" alignment="TOP_CENTER">
+            <padding>
+                <Insets top="30" right="20" bottom="30" left="20"/>
+            </padding>
+
+            <Label text="Procesador de Autómatas"
+                   style="-fx-font-size: 20px; -fx-font-weight: bold;"/>
+
+            <Separator />
+
+            <!-- Cargar / Crear -->
+            <Button text="Seleccionar archivo CSV"
+                    onAction="#onCargarCSV"
+                    prefWidth="180"/>
+
+            <Label fx:id="labelArchivo"
+                   wrapText="true"
+                   text="Ningún archivo cargado"
+                   style="-fx-text-fill: #555;"
+                   maxWidth="180"/>
+
+            <Separator />
+
+            <Button text="Crear autómata manualmente"
+                    onAction="#onCrearAutomata"
+                    prefWidth="180"/>
+
+            <Separator />
+
+            <Label text="Operaciones"
+                   style="-fx-font-size: 16px; -fx-font-weight: bold;"/>
+
+            <Button fx:id="btnConvertirAFD"
+                    text="Convertir AFND → AFD"
+                    disable="true"
+                    prefWidth="180"/>
+
+            <Button fx:id="btnConvertirAP"
+                    text="Convertir AFD → AP"
+                    disable="true"
+                    prefWidth="180"/>
+
+            <Button fx:id="btnMinimizar"
+                    text="Minimizar AFD"
+                    disable="true"
+                    prefWidth="180"/>
+        </VBox>
+    </left>
+
+    <!-- PANEL CENTRAL: Imagen del Autómata -->
+    <center>
+        <ScrollPane fitToWidth="true" fitToHeight="true" pannable="true">
+            <content>
+                <StackPane alignment="CENTER">
+                    <ImageView fx:id="imagenAutomata"
+                               preserveRatio="true"
+                               fitWidth="800"
+                               smooth="true"/>
+                </StackPane>
+            </content>
+        </ScrollPane>
+    </center>
+
+</BorderPane>
