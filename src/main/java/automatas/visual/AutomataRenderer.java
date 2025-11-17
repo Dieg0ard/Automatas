@@ -1,7 +1,5 @@
 package automatas.visual;
 
-import automatas.core.AFD;
-import automatas.core.AFND;
 import automatas.core.Automata;
 import guru.nidi.graphviz.engine.Format;
 import guru.nidi.graphviz.engine.Graphviz;
