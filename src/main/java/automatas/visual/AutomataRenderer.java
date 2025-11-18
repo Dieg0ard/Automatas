@@ -19,9 +19,9 @@ public class AutomataRenderer {
     public static void renderAutomata(Automata a) throws IOException {
         String dot = AutomataDotGenerator.generarDot(a);
         String userHome = System.getProperty("user.home");
-        String outPath = userHome + "/.automatas/img/automata.png";
+        String outPath = userHome + "/.automatas/img/automata.svg";
         Graphviz.fromString(dot)
-                .render(Format.PNG)
+                .render(Format.SVG)
                 .toFile(new File(outPath));
     }
 
