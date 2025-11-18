@@ -3,6 +3,7 @@
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.image.ImageView?>
+<?import javafx.scene.web.WebView?>
 <?import javafx.geometry.Insets?>
 
 <BorderPane xmlns="http://javafx.com/javafx"
@@ -63,17 +64,26 @@
     </left>
 
     <!-- PANEL CENTRAL: Imagen del Autómata -->
-    <center>
-        <ScrollPane fitToWidth="true" fitToHeight="true" pannable="true">
-            <content>
-                <StackPane alignment="CENTER">
-                    <ImageView fx:id="imagenAutomata"
-                               preserveRatio="true"
-                               fitWidth="800"
-                               smooth="true"/>
-                </StackPane>
-            </content>
-        </ScrollPane>
-    </center>
+   <center>
+    <ScrollPane fitToWidth="true" fitToHeight="true" pannable="true">
+        <content>
+            <StackPane alignment="CENTER">
+
+                <!--
+                <ImageView fx:id="imagenAutomata"
+                           preserveRatio="true"
+                           fitWidth="800"
+                           smooth="true"/>
+                -->
+
+                <WebView fx:id="imagenAutomata"
+                         prefWidth="800"
+                         prefHeight="600" />
+
+            </StackPane>
+        </content>
+    </ScrollPane>
+</center>
+
 
 </BorderPane>

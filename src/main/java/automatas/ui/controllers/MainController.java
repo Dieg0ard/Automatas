@@ -18,6 +18,8 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
+import javafx.scene.web.WebEngine;
+import javafx.scene.web.WebView;
 import javafx.stage.Modality;
 
 public class MainController {
@@ -31,7 +33,9 @@ public class MainController {
     @FXML
     private Button btnMinimizar;
     @FXML
-    private ImageView imagenAutomata;
+    private ImageView imgAutomata;
+    @FXML
+    private WebView imagenAutomata;
 
     private Automata automataActual;
 
@@ -54,7 +58,7 @@ public class MainController {
                 automataActual = LectorAutomata.leerDesdeCSV(archivo.getAbsolutePath());
                 labelArchivo.setText("Archivo cargado: " + archivo.getName());
 
-                mostrarAutomataImagen(archivo);  // si tu generador usa rutas derivadas del CSV
+                mostrarAutomataImagen(archivo); 
 
                 habilitarOperaciones();
             } catch (Exception e) {
@@ -70,23 +74,44 @@ public class MainController {
     /**
      * Muestra la imagen generada del autómata en el ImageView
      */
-    void mostrarAutomataImagen(File archivoAutomata) throws IOException {
+void mostrarAutomataImagen(File archivoAutomata) throws IOException {
 
-        AutomataRenderer ar = null;
-        LectorAutomata lector = null;
-        Automata automata = lector.leerDesdeCSV(archivoAutomata.getPath());
-        ar.renderAutomata(automata);
-        String userHome = System.getProperty("user.home");
-        String rutaImagen = userHome + "/.automatas/img/automata.png";
+    LectorAutomata lector = new LectorAutomata();
+    AutomataRenderer renderer = new AutomataRenderer();
 
-        File imgFile = new File(rutaImagen);
+    Automata automata = lector.leerDesdeCSV(archivoAutomata.getPath());
+    renderer.renderAutomata(automata);
 
-        if (imgFile.exists()) {
-            imagenAutomata.setImage(new Image("file:" + rutaImagen));
-        } else {
-            System.out.println("No se encontró la imagen del autómata: " + rutaImagen);
-        }
+    String userHome = System.getProperty("user.home");
+    String rutaImagen = userHome + "/.automatas/img/automata.svg";
+    File svgFile = new File(rutaImagen);
+
+    if (!svgFile.exists()) {
+        System.err.println("No se encontró: " + rutaImagen);
+        return;
     }
+
+    // URI + anti-cache
+    String fileUri = svgFile.toURI().toString() + "?t=" + System.currentTimeMillis();
+    System.out.println("Cargando SVG desde: " + fileUri);
+
+    WebEngine engine = imagenAutomata.getEngine();
+
+    // limpiar antes
+    engine.load("about:blank");
+
+    String html = """
+        <html>
+            <body style="margin:0; padding:0; background:white;">
+                <img src="%s" style="width:100%%; height:auto; display:block;" />
+            </body>
+        </html>
+        """.formatted(fileUri);
+
+    engine.loadContent(html);
+}
+
+
 
     // ----------------------------------------------------
     //      MÉTODO: Crear autómata manualmente
@@ -109,7 +134,7 @@ public class MainController {
             Stage stage = new Stage();
             stage.setTitle("Crear Autómata Manualmente");
             stage.setScene(new Scene(root));
-            stage.initModality(Modality.APPLICATION_MODAL); // Opcional: ventana modal
+            stage.initModality(Modality.APPLICATION_MODAL); 
             stage.show();
 
         } catch (Exception e) {
