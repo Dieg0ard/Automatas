@@ -1,4 +1,4 @@
-package automatas.algoritmosAutomatas;
+package automatas.algoritmos;
 
 import java.util.HashMap;
 import java.util.HashSet;

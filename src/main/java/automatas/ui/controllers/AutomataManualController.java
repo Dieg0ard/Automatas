@@ -33,7 +33,7 @@ public class AutomataManualController {
     @FXML
     private ComboBox<String> comboInicial;
     @FXML
-    private ListView<String> listaFinales;   // seguirá mostrando nombres, pero con checkboxes
+    private ListView<String> listaFinales;  
 
     @FXML
     private TableView<TransicionRow> tablaTransiciones;
@@ -48,7 +48,6 @@ public class AutomataManualController {
     private final ObservableList<String> posiblesFinales = FXCollections.observableArrayList();
     private final ObservableList<TransicionRow> transiciones = FXCollections.observableArrayList();
 
-    // mapa estado -> propiedad booleana que indica si es final (para las casillas)
     private final Map<String, BooleanProperty> finalesMap = new HashMap<>();
 
     private MainController mainController;

@@ -1,14 +1,19 @@
-package automatas.algoritmosAutomatas;
+/*
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
+ */
+package automatas.test;
 
+import automatas.algoritmos.Conversion;
+import automatas.core.AFD;
+import automatas.core.AFND;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
-import automatas.core.AFD;
-import automatas.core.AFND;
 
-public class prueba {
-    public static void main(String[] args) {
+public class PruebaConversion {
+        public static void main(String[] args) {
         // Crear un AFND basado en la tabla proporcionada
         Set<String> estados = Set.of("X", "Y", "Z", "W", "P");
         Set<Character> alfabeto = Set.of('a', 'b');
@@ -64,5 +69,4 @@ public class prueba {
         System.out.println("AFND acepta: " + afnd.acepta(cadenaPrueba));
         System.out.println("AFD acepta: " + afd.acepta(cadenaPrueba));
     }
-    }
-
+}
