@@ -1,0 +1,15 @@
+#INICIAL,x
+#FINALES,w
+
+p,a,w
+p,b,p
+w,a,y
+w,b,w
+yp,a,w
+yp,b,p
+x,a,y
+x,b,z
+y,a,w
+y,b,p
+z,a,yp
+z,b,y
