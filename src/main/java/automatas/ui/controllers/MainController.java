@@ -159,4 +159,56 @@ void mostrarAutomataImagen(File archivoAutomata) throws IOException {
     private Stage getStage() {
         return (Stage) labelArchivo.getScene().getWindow();
     }
+    
+    @FXML
+private void onMinimizar() {
+    if (automataActual == null) {
+        Alert alert = new Alert(Alert.AlertType.WARNING);
+        alert.setHeaderText("Advertencia");
+        alert.setContentText("Debes cargar un autómata primero.");
+        alert.showAndWait();
+        return;
+    }
+    
+    // Verificar que sea un AFD
+    if (!(automataActual instanceof automatas.core.AFD)) {
+        Alert alert = new Alert(Alert.AlertType.WARNING);
+        alert.setHeaderText("Advertencia");
+        alert.setContentText("Solo se pueden minimizar AFDs. Convierte el AFND a AFD primero.");
+        alert.showAndWait();
+        return;
+    }
+    
+    try {
+        automatas.core.AFD afd = (automatas.core.AFD) automataActual;
+        automatas.algoritmos.Minimizacion min = new automatas.algoritmos.Minimizacion(afd);
+        
+        // Mostrar el proceso en consola (opcional)
+        min.mostrarProcesoMinimizacion();
+        
+        // Guardar el AFD minimizado
+        String userHome = System.getProperty("user.home");
+        String rutaMinimizado = userHome + "/.automatas/csv/afd_minimizado.csv";
+        
+        automatas.core.AFD afdMinimizado = min.minimizarYGuardar(rutaMinimizado);
+        
+        // Actualizar la vista
+        automataActual = afdMinimizado;
+        labelArchivo.setText("AFD Minimizado cargado");
+        mostrarAutomataImagen(new File(rutaMinimizado));
+        
+        // Mostrar mensaje de éxito
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setHeaderText("Minimización exitosa");
+        alert.setContentText("El AFD ha sido minimizado correctamente.");
+        alert.showAndWait();
+        
+    } catch (Exception e) {
+        Alert alert = new Alert(Alert.AlertType.ERROR);
+        alert.setHeaderText("Error");
+        alert.setContentText("No se pudo minimizar el AFD: " + e.getMessage());
+        alert.showAndWait();
+        e.printStackTrace();
+    }
+}
 }
