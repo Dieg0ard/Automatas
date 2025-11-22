@@ -19,7 +19,7 @@ public class Conversion {
     }
 
     public AFD convertir() {
-        // Paso 1: Inicializar estructuras para el AFD
+        // Inicializar estructuras para el AFD
         Set<String> estadosAFD = new HashSet<>();
         Map<String, Map<Character, String>> transicionesAFD = new HashMap<>();
         Set<String> estadosFinalesAFD = new HashSet<>();
@@ -156,22 +156,16 @@ public class Conversion {
      * Método auxiliar para mostrar el proceso de conversión (debug)
      */
     public void mostrarProcesoConversion() {
-        System.out.println("=== PROCESO DE CONVERSIÓN AFND -> AFD ===");
+        System.out.println("--- PROCESO DE CONVERSIÓN AFND -> AFD ---");
         System.out.println("AFND Original:");
-        System.out.println("  Estados: " + afnd.getEstados());
-        System.out.println("  Estado inicial: " + afnd.getEstadoInicial());
-        System.out.println("  Estados finales: " + afnd.getEstadosFinales());
-        System.out.println("  Alfabeto: " + afnd.getAlfabeto());
+        afnd.mostrar();
         System.out.println("  Transiciones:");
         mostrarTransicionesAFND();
         
         AFD afd = convertir();
         
         System.out.println("\nAFD Resultante:");
-        System.out.println("  Estados: " + afd.getEstados());
-        System.out.println("  Estado inicial: " + afd.getEstadoInicial());
-        System.out.println("  Estados finales: " + afd.getEstadosFinales());
-        System.out.println("  Alfabeto: " + afd.getAlfabeto());
+        afd.mostrar();
         System.out.println("  Transiciones:");
         mostrarTransicionesAFD(afd);
     }
