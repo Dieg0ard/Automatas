@@ -1,7 +1,13 @@
 package automatas.ui.controllers;
 
+import automatas.algoritmos.Conversion;
+import automatas.core.AFD;
+import automatas.core.AFND;
 import automatas.core.Automata;
 import automatas.io.LectorAutomata;
+import automatas.regex.RegexAST;
+import automatas.regex.RegexParser;
+import automatas.regex.ThompsonConstructor;
 import automatas.visual.AutomataRenderer;
 
 import javafx.fxml.FXML;
@@ -14,10 +20,12 @@ import javafx.stage.Stage;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Optional;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
+import javafx.scene.control.TextInputDialog;
 import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
 import javafx.stage.Modality;
@@ -143,6 +151,42 @@ void mostrarAutomataImagen(File archivoAutomata) throws IOException {
             alert.showAndWait();
         }
     }
+    
+    @FXML
+private void onCrearDesdeRegex() {
+    // Crear diálogo para ingresar la expresión regular
+    TextInputDialog dialog = new TextInputDialog();
+    dialog.setTitle("Crear desde Expresión Regular");
+    dialog.setHeaderText("Ingrese la expresión regular");
+    dialog.setContentText("Regex:");
+    
+    Optional<String> resultado = dialog.showAndWait();
+    
+    resultado.ifPresent(regex -> {
+        try {
+            // Parsear la expresión regular
+            RegexParser parser = new RegexParser(regex);
+            RegexAST.Node ast = parser.parse();
+            
+            // Construir AFND usando Thompson
+            ThompsonConstructor thompson = new ThompsonConstructor();
+            AFND afnd = thompson.convert(ast);
+            
+            // Actualizar la visualización
+            this.automataActual = afnd;
+            //visualizarAutomata(afd);
+            String userHome = System.getProperty("user.home");
+            String rutaCSV = userHome + "/.automatas/csv/afd.csv";
+            mostrarAutomataImagen(new File(rutaCSV));
+            
+            // Habilitar botones relevantes
+            btnMinimizar.setDisable(false);
+            
+        } catch (Exception e) {
+
+        }
+    });
+}
 
     // ----------------------------------------------------
     //                Habilitar botones
@@ -211,4 +255,43 @@ private void onMinimizar() {
         e.printStackTrace();
     }
 }
+@FXML
+private void onConvertirAFD() {
+    if (automataActual == null) {
+        //mostrarError("No hay ningún autómata cargado");
+        return;
+    }
+    
+    if (!(automataActual instanceof AFND)) {
+        //mostrarError("El autómata actual no es un AFND");
+        return;
+    }
+    
+    try {
+        AFND afnd = (AFND) automataActual;
+        
+        // Realizar la conversión
+        Conversion conversion = new Conversion(afnd);
+        AFD afd = conversion.convertir();
+        
+        // Actualizar el autómata actual
+        this.automataActual = afd;
+        
+        // Visualizar el AFD resultante
+        String userHome = System.getProperty("user.home");
+            String rutaCSV = userHome + "/.automatas/csv/afd.csv";
+            mostrarAutomataImagen(new File(rutaCSV));
+        
+        // Actualizar estados de botones
+      //  btnConvertirAFD.setDisable(true);  // Ya no es AFND
+        btnMinimizar.setDisable(false);    // Ahora se puede minimizar
+        btnConvertirAP.setDisable(false);  // Ahora se puede convertir a AP
+        
+        //mostrarInfo("Conversión exitosa", "AFND convertido a AFD correctamente");
+        
+    } catch (Exception e) {
+        //mostrarError("Error al convertir a AFD: " + e.getMessage());
+    }
+}
+
 }

@@ -1,19 +1,16 @@
 package automatas.algoritmos;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.Map;
-import java.util.Queue;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
-
 import automatas.core.AFD;
 import automatas.core.AFND;
+import automatas.io.EscritorAutomata;
+import java.io.IOException;
 
 public class Conversion {
     private AFND afnd;
-
+    private boolean debug = false;
+    
     public Conversion(AFND afnd) {
         this.afnd = afnd;
     }
@@ -40,116 +37,161 @@ public class Conversion {
         while (!estadosPorProcesar.isEmpty()) {
             String estadoActual = estadosPorProcesar.poll();
             
-            // Si el estado actual es compuesto, verificar si es final
-            if (esEstadoFinal(estadoActual)) {
-                estadosFinalesAFD.add(estadoActual);
+            if (debug) {
+                System.out.println("\n--- Paso " + (++pasos) + " ---");
+                System.out.println("Procesando estado " + idActual + ": " + estadoActual);
             }
             
-            // Inicializar transiciones para este estado
-            transicionesAFD.put(estadoActual, new HashMap<>());
+            // Verificar si es final
+            if (esFinal(estadoActual)) {
+                finales.add(idActual);
+                if (debug) System.out.println("  → Es estado FINAL");
+            }
             
-            // Para cada símbolo del alfabeto
-            for (Character simbolo : alfabetoAFD) {
-                Set<String> destinosAFND = calcularTransicion(estadoActual, simbolo);
+            // Calcular transiciones
+            Map<Character, Integer> transEstado = new HashMap<>();
+            for (Character simbolo : alfabeto) {
+                Set<String> destino = mover(estadoActual, simbolo);
                 
-                if (!destinosAFND.isEmpty()) {
-                    // Crear nombre del estado destino (fusionar si hay múltiples)
-                    String estadoDestino = fusionarEstados(destinosAFND);
-                    
-                    // Agregar la transición
-                    transicionesAFD.get(estadoActual).put(simbolo, estadoDestino);
-                    
-                    // Si es un estado nuevo, agregarlo a la cola
-                    if (!estadosAFD.contains(estadoDestino)) {
-                        estadosAFD.add(estadoDestino);
-                        estadosPorProcesar.offer(estadoDestino);
+                if (debug) {
+                    System.out.println("  Con '" + simbolo + "':");
+                    System.out.println("    Destinos directos: " + getDestinosDirectos(estadoActual, simbolo));
+                    System.out.println("    Después de ε-clausura: " + destino);
+                }
+                
+                if (!destino.isEmpty()) {
+                    Integer idDestino;
+                    if (estadoAId.containsKey(destino)) {
+                        idDestino = estadoAId.get(destino);
+                        if (debug) System.out.println("    → Ya existe como estado " + idDestino);
+                    } else {
+                        idDestino = idAEstado.size();
+                        estadoAId.put(destino, idDestino);
+                        idAEstado.add(destino);
+                        cola.offer(idDestino);
+                        if (debug) System.out.println("    → NUEVO estado " + idDestino + " descubierto");
+                    }
+                    transEstado.put(simbolo, idDestino);
+                }
+            }
+            transiciones.put(idActual, transEstado);
+        }
+        
+        if (debug) {
+            System.out.println("\n========================================");
+            System.out.println("RESULTADO FINAL");
+            System.out.println("========================================");
+            System.out.println("Total de estados generados: " + idAEstado.size());
+            System.out.println("\nMapeo de estados:");
+            for (int i = 0; i < idAEstado.size(); i++) {
+                System.out.println("  Estado " + i + ": " + idAEstado.get(i));
+            }
+        }
+        
+        // Construir AFD final
+        return construirAFDFinal(idAEstado, transiciones, finales, alfabeto);
+    }
+    
+    /**
+     * ε-clausura: todos los estados alcanzables solo con transiciones epsilon
+     */
+    private Set<String> clausuraEpsilon(Set<String> estados) {
+        Set<String> resultado = new HashSet<>(estados);
+        Stack<String> pila = new Stack<>();
+        pila.addAll(estados);
+        
+        while (!pila.isEmpty()) {
+            String actual = pila.pop();
+            
+            Map<Character, Set<String>> trans = afnd.getTransiciones().get(actual);
+            if (trans != null && trans.containsKey(null)) {
+                for (String destino : trans.get(null)) {
+                    if (!resultado.contains(destino)) {
+                        resultado.add(destino);
+                        pila.push(destino);
                     }
                 }
             }
         }
         
-        return new AFD(estadosAFD, alfabetoAFD, transicionesAFD, estadoInicialAFD, estadosFinalesAFD);
+        return resultado;
     }
     
     /**
-     * Calcula la transición para un estado del AFD y un símbolo
-     * Si el estado es compuesto, fusiona las transiciones de sus componentes
+     * mover(T, a) = ε-clausura(δ(T, a))
      */
-    private Set<String> calcularTransicion(String estadoAFD, Character simbolo) {
+    private Set<String> mover(Set<String> estados, Character simbolo) {
         Set<String> destinos = new HashSet<>();
         
-        // Obtener los estados componentes del AFND
-        Set<String> componentes = obtenerComponentes(estadoAFD);
-        
-        // Para cada componente, obtener sus destinos con este símbolo
-        for (String componente : componentes) {
-            Map<Character, Set<String>> transComponente = afnd.getTransiciones().get(componente);
-            if (transComponente != null) {
-                Set<String> destinosComponente = transComponente.get(simbolo);
-                if (destinosComponente != null) {
-                    destinos.addAll(destinosComponente);
-                }
+        for (String estado : estados) {
+            Map<Character, Set<String>> trans = afnd.getTransiciones().get(estado);
+            if (trans != null && trans.containsKey(simbolo)) {
+                destinos.addAll(trans.get(simbolo));
             }
         }
         
+        return destinos.isEmpty() ? destinos : clausuraEpsilon(destinos);
+    }
+    
+    /**
+     * Solo para debug: obtener destinos directos sin ε-clausura
+     */
+    private Set<String> getDestinosDirectos(Set<String> estados, Character simbolo) {
+        Set<String> destinos = new HashSet<>();
+        for (String estado : estados) {
+            Map<Character, Set<String>> trans = afnd.getTransiciones().get(estado);
+            if (trans != null && trans.containsKey(simbolo)) {
+                destinos.addAll(trans.get(simbolo));
+            }
+        }
         return destinos;
     }
     
-    /**
-     * Fusiona un conjunto de estados en un solo nombre
-     * Ejemplo: {"A", "B", "C"} -> "ABC"
-     * Letras repetidas cuentan una sola vez
-     */
-    private String fusionarEstados(Set<String> estados) {
-        if (estados.size() == 1) {
-            return estados.iterator().next(); // Estado simple
-        }
-        
-        // Para estados múltiples, fusionar nombres eliminando duplicados
-        String nombres = estados.stream()
-            .flatMap(estado -> estado.chars().mapToObj(c -> (char) c))
-            .distinct()
-            .sorted()
-            .map(String::valueOf)
-            .collect(Collectors.joining());
-        
-        return nombres;
+    private boolean esFinal(Set<String> conjunto) {
+        return conjunto.stream().anyMatch(e -> afnd.getEstadosFinales().contains(e));
     }
     
-    /**
-     * Obtiene los componentes de un estado del AFD
-     * Si es estado simple, devuelve un conjunto con solo ese estado
-     * Si es estado compuesto, separa por caracteres individuales
-     */
-    private Set<String> obtenerComponentes(String estadoAFD) {
-        Set<String> componentes = new HashSet<>();
+    private AFD construirAFDFinal(
+            List<Set<String>> estados,
+            Map<Integer, Map<Character, Integer>> transiciones,
+            Set<Integer> finales,
+            Set<Character> alfabeto) throws IOException {
         
-        // Si el estado tiene más de un carácter, asumimos que es compuesto
-        if (estadoAFD.length() > 1) {
-            for (char c : estadoAFD.toCharArray()) {
-                componentes.add(String.valueOf(c));
+        // Usar nombres simples: q0, q1, q2, etc.
+        Map<Integer, String> nombres = new HashMap<>();
+        for (int i = 0; i < estados.size(); i++) {
+            nombres.put(i, "q" + i);
+        }
+        
+        Set<String> estadosStr = new HashSet<>(nombres.values());
+        Set<String> finalesStr = finales.stream()
+                .map(nombres::get)
+                .collect(Collectors.toSet());
+        
+        Map<String, Map<Character, String>> transStr = new HashMap<>();
+        for (Map.Entry<Integer, Map<Character, Integer>> entry : transiciones.entrySet()) {
+            String origen = nombres.get(entry.getKey());
+            Map<Character, String> trans = new HashMap<>();
+            for (Map.Entry<Character, Integer> t : entry.getValue().entrySet()) {
+                trans.put(t.getKey(), nombres.get(t.getValue()));
             }
-        } else {
-            componentes.add(estadoAFD);
+            transStr.put(origen, trans);
         }
         
-        return componentes;
-    }
-    
-    /**
-     * Determina si un estado del AFD es final
-     * Un estado es final si alguno de sus componentes es final en el AFND original
-     */
-    private boolean esEstadoFinal(String estadoAFD) {
-        Set<String> componentes = obtenerComponentes(estadoAFD);
-        
-        for (String componente : componentes) {
-            if (afnd.getEstadosFinales().contains(componente)) {
-                return true;
+        if (debug) {
+            System.out.println("\nMapeo final de nombres:");
+            for (int i = 0; i < estados.size(); i++) {
+                System.out.println("  " + nombres.get(i) + " = " + estados.get(i));
             }
         }
         
-        return false;
+        AFD afd = new AFD(estadosStr, alfabeto, transStr, nombres.get(0), finalesStr);
+        
+        String userHome = System.getProperty("user.home");
+        String rutaCSV = userHome + "/.automatas/csv/afd.csv";
+        EscritorAutomata.guardarAFD(afd, rutaCSV);
+        
+        return afd;
     }
     
     /**
@@ -173,23 +215,20 @@ public class Conversion {
     private void mostrarTransicionesAFND() {
         for (String estado : afnd.getEstados()) {
             Map<Character, Set<String>> trans = afnd.getTransiciones().get(estado);
-            if (trans != null) {
-                for (Map.Entry<Character, Set<String>> entry : trans.entrySet()) {
-                    String simbolo = entry.getKey() == null ? "ε" : entry.getKey().toString();
-                    System.out.println("    " + estado + " --" + simbolo + "--> " + entry.getValue());
+            if (trans == null || trans.isEmpty()) {
+                System.out.println("    " + estado + ": (sin transiciones)");
+            } else {
+                for (Map.Entry<Character, Set<String>> e : trans.entrySet()) {
+                    String sim = e.getKey() == null ? "ε" : "'" + e.getKey() + "'";
+                    System.out.println("    δ(" + estado + ", " + sim + ") = " + e.getValue());
                 }
             }
         }
     }
     
-    private void mostrarTransicionesAFD(AFD afd) {
-        for (String estado : afd.getEstados()) {
-            Map<Character, String> trans = afd.getTransiciones().get(estado);
-            if (trans != null) {
-                for (Map.Entry<Character, String> entry : trans.entrySet()) {
-                    System.out.println("    " + estado + " --" + entry.getKey() + "--> " + entry.getValue());
-                }
-            }
-        }
+    public void mostrarProcesoConversion() throws IOException {
+        this.debug = true;
+        convertir();
+        this.debug = false;
     }
 }
