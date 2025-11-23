@@ -4,6 +4,8 @@ import java.util.*;
 import java.util.stream.Collectors;
 import automatas.core.AFD;
 import automatas.core.AFND;
+import automatas.io.EscritorAutomata;
+import java.io.IOException;
 
 public class Conversion {
     private AFND afnd;
@@ -17,7 +19,7 @@ public class Conversion {
         this.debug = debug;
     }
     
-    public AFD convertir() {
+    public AFD convertir() throws IOException {
         if (debug) {
             System.out.println("\n========================================");
             System.out.println("INICIANDO CONVERSIÓN AFND -> AFD");
@@ -183,7 +185,7 @@ public class Conversion {
             List<Set<String>> estados,
             Map<Integer, Map<Character, Integer>> transiciones,
             Set<Integer> finales,
-            Set<Character> alfabeto) {
+            Set<Character> alfabeto) throws IOException {
         
         // Usar nombres simples: q0, q1, q2, etc.
         Map<Integer, String> nombres = new HashMap<>();
@@ -212,8 +214,11 @@ public class Conversion {
                 System.out.println("  " + nombres.get(i) + " = " + estados.get(i));
             }
         }
-        
-        return new AFD(estadosStr, alfabeto, transStr, nombres.get(0), finalesStr);
+        AFD afd = new AFD(estadosStr, alfabeto, transStr, nombres.get(0), finalesStr);
+        String userHome = System.getProperty("user.home");
+        String rutaCSV = userHome + "/.automatas/csv/afd.csv";
+        EscritorAutomata.guardarAFD(afd, rutaCSV);
+        return afd;
     }
     
     private void imprimirAFND() {
@@ -237,7 +242,7 @@ public class Conversion {
         }
     }
     
-    public void mostrarProcesoConversion() {
+    public void mostrarProcesoConversion() throws IOException {
         this.debug = true;
         convertir();
         this.debug = false;
