@@ -4,8 +4,6 @@ import java.util.*;
 import java.util.stream.Collectors;
 import automatas.core.AFD;
 import automatas.core.AFND;
-import automatas.io.EscritorAutomata;
-import java.io.IOException;
 
 public class Conversion {
     private AFND afnd;
@@ -14,28 +12,58 @@ public class Conversion {
     public Conversion(AFND afnd) {
         this.afnd = afnd;
     }
-
+    
+    public void setDebug(boolean debug) {
+        this.debug = debug;
+    }
+    
     public AFD convertir() {
-        // Inicializar estructuras para el AFD
-        Set<String> estadosAFD = new HashSet<>();
-        Map<String, Map<Character, String>> transicionesAFD = new HashMap<>();
-        Set<String> estadosFinalesAFD = new HashSet<>();
+        if (debug) {
+            System.out.println("\n========================================");
+            System.out.println("INICIANDO CONVERSIÓN AFND -> AFD");
+            System.out.println("========================================");
+            imprimirAFND();
+        }
         
-        // El alfabeto del AFD es el mismo (sin epsilon si existe)
-        Set<Character> alfabetoAFD = new HashSet<>(afnd.getAlfabeto());
-        alfabetoAFD.remove(null); // Remover transiciones epsilon
+        // Alfabeto sin epsilon
+        Set<Character> alfabeto = new HashSet<>(afnd.getAlfabeto());
+        alfabeto.remove(null);
         
-        // Estado inicial del AFD es el estado inicial del AFND
-        String estadoInicialAFD = afnd.getEstadoInicial();
-        estadosAFD.add(estadoInicialAFD);
+        if (debug) {
+            System.out.println("\nAlfabeto (sin ε): " + alfabeto);
+        }
         
-        // Cola para procesar estados pendientes
-        Queue<String> estadosPorProcesar = new LinkedList<>();
-        estadosPorProcesar.offer(estadoInicialAFD);
+        // Calcular estado inicial
+        Set<String> q0 = clausuraEpsilon(Set.of(afnd.getEstadoInicial()));
         
-        // Procesar estados hasta que no queden nuevos
-        while (!estadosPorProcesar.isEmpty()) {
-            String estadoActual = estadosPorProcesar.poll();
+        if (debug) {
+            System.out.println("\nEstado inicial del AFD:");
+            System.out.println("  q0_AFD = ε-clausura({" + afnd.getEstadoInicial() + "}) = " + q0);
+        }
+        
+        // Estructuras para construcción
+        Map<Set<String>, Integer> estadoAId = new HashMap<>();
+        List<Set<String>> idAEstado = new ArrayList<>();
+        Map<Integer, Map<Character, Integer>> transiciones = new HashMap<>();
+        Set<Integer> finales = new HashSet<>();
+        
+        // Asignar ID al estado inicial
+        estadoAId.put(q0, 0);
+        idAEstado.add(q0);
+        
+        Queue<Integer> cola = new LinkedList<>();
+        cola.offer(0);
+        
+        if (debug) {
+            System.out.println("\n========================================");
+            System.out.println("CONSTRUCCIÓN DE ESTADOS DEL AFD");
+            System.out.println("========================================");
+        }
+        
+        int pasos = 0;
+        while (!cola.isEmpty()) {
+            int idActual = cola.poll();
+            Set<String> estadoActual = idAEstado.get(idActual);
             
             if (debug) {
                 System.out.println("\n--- Paso " + (++pasos) + " ---");
@@ -155,7 +183,7 @@ public class Conversion {
             List<Set<String>> estados,
             Map<Integer, Map<Character, Integer>> transiciones,
             Set<Integer> finales,
-            Set<Character> alfabeto) throws IOException {
+            Set<Character> alfabeto) {
         
         // Usar nombres simples: q0, q1, q2, etc.
         Map<Integer, String> nombres = new HashMap<>();
@@ -185,34 +213,17 @@ public class Conversion {
             }
         }
         
-        AFD afd = new AFD(estadosStr, alfabeto, transStr, nombres.get(0), finalesStr);
-        
-        String userHome = System.getProperty("user.home");
-        String rutaCSV = userHome + "/.automatas/csv/afd.csv";
-        EscritorAutomata.guardarAFD(afd, rutaCSV);
-        
-        return afd;
+        return new AFD(estadosStr, alfabeto, transStr, nombres.get(0), finalesStr);
     }
     
-    /**
-     * Método auxiliar para mostrar el proceso de conversión (debug)
-     */
-    public void mostrarProcesoConversion() {
-        System.out.println("--- PROCESO DE CONVERSIÓN AFND -> AFD ---");
-        System.out.println("AFND Original:");
-        afnd.mostrar();
-        System.out.println("  Transiciones:");
-        mostrarTransicionesAFND();
+    private void imprimirAFND() {
+        System.out.println("\nAFND de entrada:");
+        System.out.println("  Estados: " + afnd.getEstados());
+        System.out.println("  Inicial: " + afnd.getEstadoInicial());
+        System.out.println("  Finales: " + afnd.getEstadosFinales());
+        System.out.println("  Alfabeto: " + afnd.getAlfabeto());
+        System.out.println("\n  Todas las transiciones:");
         
-        AFD afd = convertir();
-        
-        System.out.println("\nAFD Resultante:");
-        afd.mostrar();
-        System.out.println("  Transiciones:");
-        mostrarTransicionesAFD(afd);
-    }
-    
-    private void mostrarTransicionesAFND() {
         for (String estado : afnd.getEstados()) {
             Map<Character, Set<String>> trans = afnd.getTransiciones().get(estado);
             if (trans == null || trans.isEmpty()) {
@@ -226,7 +237,7 @@ public class Conversion {
         }
     }
     
-    public void mostrarProcesoConversion() throws IOException {
+    public void mostrarProcesoConversion() {
         this.debug = true;
         convertir();
         this.debug = false;
