@@ -13,7 +13,7 @@ import java.util.Set;
 
 
 public class PruebaConversion {
-        public static void main(String[] args) {
+        /*public static void main(String[] args) {
         // Crear un AFND basado en la tabla proporcionada
         Set<String> estados = Set.of("X", "Y", "Z", "W", "P");
         Set<Character> alfabeto = Set.of('a', 'b');
@@ -68,5 +68,5 @@ public class PruebaConversion {
         System.out.println("\nPrueba con cadena: '" + cadenaPrueba + "'");
         System.out.println("AFND acepta: " + afnd.acepta(cadenaPrueba));
         System.out.println("AFD acepta: " + afd.acepta(cadenaPrueba));
-    }
+    }*/
 }
