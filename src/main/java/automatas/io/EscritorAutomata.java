@@ -2,6 +2,7 @@ package automatas.io;
 
 import automatas.core.AFD;
 import automatas.core.AFND;
+import automatas.core.AP;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -11,6 +12,47 @@ import java.util.Map;
 import java.util.Set;
 
 public class EscritorAutomata {
+    
+    public static void guardarAP(AP ap, String rutaArchivo) throws IOException {
+    File archivo = new File(rutaArchivo);
+    // Crear directorios padre si no existen
+    if (archivo.getParentFile() != null) {
+        archivo.getParentFile().mkdirs();
+    }
+    
+    try (BufferedWriter writer = new BufferedWriter(new FileWriter(archivo))) {
+        // Estado inicial
+        writer.write("#INICIAL," + ap.getEstadoInicial());
+        writer.newLine();
+        
+        // Estados finales
+        writer.write("#FINALES," + String.join(",", ap.getEstadosFinales()));
+        writer.newLine();
+        
+        // Símbolo inicial de pila
+        writer.write("#SIMBOLO_PILA," + ap.getSimboloInicialPila());
+        writer.newLine();
+        
+        // Modo de aceptación
+        writer.write("#ACEPTA_POR," + (ap.aceptaPorEstadoFinal() ? "ESTADO_FINAL" : "PILA_VACIA"));
+        writer.newLine();
+        
+        writer.newLine();
+        
+        // Transiciones: origen,simboloEntrada,topePila,destino,reemplazo
+        for (AP.Transicion t : ap.getTransiciones()) {
+            String entrada = t.getSimboloEntrada() == null ? "ε" : t.getSimboloEntrada().toString();
+            String reemplazo = t.getReemplazoEnPila().isEmpty() ? "ε" : t.getReemplazoEnPila();
+            
+            writer.write(t.getEstadoOrigen() + "," + 
+                        entrada + "," + 
+                        t.getTopePila() + "," + 
+                        t.getEstadoDestino() + "," + 
+                        reemplazo);
+            writer.newLine();
+        }
+    }
+}
 
     public static void guardarAFD(AFD afd, String rutaArchivo) throws IOException {
         afd.mostrar();

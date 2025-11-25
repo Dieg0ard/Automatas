@@ -2,6 +2,8 @@ package automatas.algoritmos;
 
 import automatas.core.AP;
 import automatas.grammar.GLC;
+import automatas.io.EscritorAutomata;
+import java.io.IOException;
 import java.util.*;
 
 /**
@@ -22,7 +24,7 @@ public class GLCtoAP {
         this.gramatica = gramatica;
     }
     
-    public AP convertir() {
+    public AP convertir() throws IOException {
         // Estados: q0 (inicial), q1 (procesamiento), q2 (final)
         Set<String> estados = Set.of("q0", "q1", "q2");
         
@@ -87,14 +89,20 @@ public class GLCtoAP {
         // El autómata acepta por estado final
         Set<String> estadosFinales = Set.of("q2");
         
-        return new AP(estados, alfabetoEntrada, alfabetoPila, 
+        
+        AP ap = new AP(estados, alfabetoEntrada, alfabetoPila, 
                      transiciones, "q0", 'Z', estadosFinales, true);
+        String userHome = System.getProperty("user.home");
+        String rutaCSV = userHome + "/.automatas/csv/afd.csv";
+        EscritorAutomata.guardarAP(ap, rutaCSV);
+        
+        return ap;
     }
     
     /**
      * Convierte y muestra el proceso detallado
      */
-    public void mostrarConversion() {
+    public void mostrarConversion() throws IOException {
         System.out.println("=== CONVERSIÓN GLC → AP ===\n");
         System.out.println("Gramática de entrada:");
         System.out.println(gramatica);
@@ -114,14 +122,14 @@ public class GLCtoAP {
     /**
      * Método estático de conveniencia
      */
-    public static AP convertirGramatica(GLC gramatica) {
+    public static AP convertirGramatica(GLC gramatica) throws IOException {
         return new GLCtoAP(gramatica).convertir();
     }
     
     /**
      * Ejemplos de uso
      */
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
         // Ejemplo 1: a^n b^n
         System.out.println("=== EJEMPLO 1: a^n b^n ===");
         GLC g1 = GLC.Ejemplos.anbn();
