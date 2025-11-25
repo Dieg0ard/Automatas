@@ -38,7 +38,7 @@
             <Separator />
             
             <!-- NUEVO BOTÓN -->
-            <Button text="Crear desde expresión regular"
+            <Button text="Crear desde lenguaje"
                     onAction="#onCrearDesdeRegex"
                     prefWidth="180"/>
             
@@ -50,8 +50,9 @@
                     text="Convertir AFND → AFD"
                     onAction="#onConvertirAFD"
                     prefWidth="180"/>
-            <Button fx:id="btnConvertirAP"
-                    text="Convertir AFD → AP"
+            <Button fx:id="btnAP"
+                    text="Construir AP"
+                    onAction="#onConstruirAP"
                     prefWidth="180"/>
             <Button fx:id="btnMinimizar"
                     text="Minimizar AFD"
