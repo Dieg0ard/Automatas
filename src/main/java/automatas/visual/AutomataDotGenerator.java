@@ -131,68 +131,92 @@ public class AutomataDotGenerator {
  * @return Código DOT para visualizar el autómata
  */
 public static String generarDot(AP ap) {
-    StringBuilder dot = new StringBuilder();
-    
-    // Cabecera del grafo
-    dot.append("digraph AP {\n");
-    dot.append("  rankdir=LR;\n");
-    dot.append("  node [shape=circle];\n\n");
-    
-    // Nodo invisible para la flecha de inicio
-    dot.append("  __start [shape=none, label=\"\"];\n");
-    dot.append("  __start -> \"").append(ap.getEstadoInicial()).append("\";\n\n");
-    
-    // Estados finales con doble círculo
-    if (!ap.getEstadosFinales().isEmpty()) {
-        dot.append("  node [shape=doublecircle];\n");
-        for (String estadoFinal : ap.getEstadosFinales()) {
-            dot.append("  \"").append(estadoFinal).append("\";\n");
+    StringBuilder sb = new StringBuilder();
+
+    sb.append("digraph AP {\n");
+    sb.append("    rankdir=LR;\n");
+    sb.append("    node [shape=circle];\n\n");
+
+    // Estados
+    for (String estado : ap.getEstados()) {
+        if (ap.getEstadosFinales().contains(estado)) {
+            sb.append("    ").append(estado).append(" [shape=doublecircle];\n");
+        } else {
+            sb.append("    ").append(estado).append(";\n");
         }
-        dot.append("\n");
     }
-    
-    // Estados normales
-    dot.append("  node [shape=circle];\n\n");
-    
-    // Agrupar transiciones por (origen, destino) para combinar etiquetas
-    Map<String, List<String>> transicionesAgrupadas = new HashMap<>();
-    
-    for (AP.Transicion t : ap.getTransiciones()) {
-        String clave = t.getEstadoOrigen() + " -> " + t.getEstadoDestino();
-        
-        // Formatear la etiqueta de la transición
-        String simboloEntrada = t.getSimboloEntrada() == null ? "ε" : t.getSimboloEntrada().toString();
-        String reemplazo = t.getReemplazoEnPila().isEmpty() ? "ε" : t.getReemplazoEnPila();
-        String etiqueta = simboloEntrada + ", " + t.getTopePila() + " → " + reemplazo;
-        
-        transicionesAgrupadas.computeIfAbsent(clave, k -> new ArrayList<>()).add(etiqueta);
+    sb.append("\n");
+
+    // Estado inicial
+    sb.append("    start [shape=point];\n");
+    sb.append("    start -> ").append(ap.getEstadoInicial()).append(";\n\n");
+
+    // === Obtener transiciones por reflexión ===
+    Map<?, ?> trans = ap.getTransiciones();
+
+    try {
+
+        for (var entry : trans.entrySet()) {
+
+            Object keyObj = entry.getKey();
+            Object valListObj = entry.getValue();
+
+            var keyClass = keyObj.getClass();
+
+            var fEstado = keyClass.getDeclaredField("estado");
+            var fSimboloEntrada = keyClass.getDeclaredField("simboloEntrada");
+            var fSimboloPila = keyClass.getDeclaredField("simboloPila");
+
+            fEstado.setAccessible(true);
+            fSimboloEntrada.setAccessible(true);
+            fSimboloPila.setAccessible(true);
+
+            String estado = (String) fEstado.get(keyObj);
+            Character simboloEntrada = (Character) fSimboloEntrada.get(keyObj);
+            char simboloPila = (char) fSimboloPila.get(keyObj);
+
+            @SuppressWarnings("unchecked")
+            List<?> valores = (List<?>) valListObj;
+
+            for (Object valObj : valores) {
+                var valClass = valObj.getClass();
+
+                var fEstadoSig = valClass.getDeclaredField("estadoSiguiente");
+                var fReemplazo = valClass.getDeclaredField("cadenaReemplazo");
+
+                fEstadoSig.setAccessible(true);
+                fReemplazo.setAccessible(true);
+
+                String estadoSig = (String) fEstadoSig.get(valObj);
+                String reemplazo = (String) fReemplazo.get(valObj);
+
+                String label = (simboloEntrada == null ? "ε" : simboloEntrada)
+                        + " , "
+                        + simboloPila
+                        + " → "
+                        + (reemplazo.isEmpty() ? "ε" : reemplazo);
+
+                sb.append("    ")
+                        .append(estado)
+                        .append(" -> ")
+                        .append(estadoSig)
+                        .append(" [label=\"")
+                        .append(label)
+                        .append("\"];\n");
+            }
+        }
+
+    } catch (Exception e) {
+        throw new RuntimeException("Error al procesar transiciones del AP", e);
     }
-    
-    // Generar las transiciones
-    dot.append("  // Transiciones\n");
-    for (Map.Entry<String, List<String>> entry : transicionesAgrupadas.entrySet()) {
-        String[] partes = entry.getKey().split(" -> ");
-        String origen = partes[0];
-        String destino = partes[1];
-        
-        // Combinar múltiples etiquetas con saltos de línea
-        String etiquetaCombinada = String.join("\\n", entry.getValue());
-        
-        dot.append("  \"").append(origen).append("\" -> \"").append(destino)
-           .append("\" [label=\"").append(etiquetaCombinada).append("\"];\n");
-    }
-    
-    // Nota sobre el modo de aceptación
-    dot.append("\n  // Modo de aceptación: ")
-       .append(ap.aceptaPorEstadoFinal() ? "estado final" : "pila vacía")
-       .append("\n");
-    dot.append("  labelloc=\"t\";\n");
-    dot.append("  label=\"Símbolo inicial de pila: ").append(ap.getSimboloInicialPila()).append("\";\n");
-    
-    dot.append("}\n");
-    
-    return dot.toString();
+
+    sb.append("}\n");
+    return sb.toString();
 }
+
+
+
+
 
 
     /* -------------------- Método general -------------------- */

@@ -1,25 +1,22 @@
 package automatas.ui.controllers;
 
 import automatas.algoritmos.Conversion;
-import automatas.algoritmos.GLCtoAP;
 import automatas.core.AFD;
 import automatas.core.AFND;
 import automatas.core.AP;
 import automatas.core.Automata;
-import automatas.grammar.CFExpressionParser;
-import automatas.grammar.GLC;
+import automatas.generador.GeneradorAP;
+import automatas.io.EscritorAutomata;
 import automatas.io.LectorAutomata;
 import automatas.regex.LanguageParser;
 import automatas.regex.RegexAST;
 import automatas.regex.RegexParser;
 import automatas.regex.ThompsonConstructor;
 import automatas.visual.AutomataRenderer;
-import java.awt.Insets;
 
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
-import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
@@ -27,7 +24,6 @@ import javafx.stage.Stage;
 import java.io.File;
 import java.io.IOException;
 import java.util.Optional;
-import java.util.stream.Collectors;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -35,11 +31,9 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Dialog;
-import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TextInputDialog;
 import javafx.scene.layout.GridPane;
-import javafx.scene.layout.VBox;
 import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
 import javafx.stage.Modality;
@@ -134,6 +128,72 @@ public class MainController {
         engine.loadContent(html);
     }
 
+    void mostrarAutomataImagen(Automata automata) throws IOException {
+
+        AutomataRenderer.renderAutomata(automata);
+
+        String userHome = System.getProperty("user.home");
+        String rutaImagen = userHome + "/.automatas/img/automata.svg";
+        File svgFile = new File(rutaImagen);
+
+        if (!svgFile.exists()) {
+            System.err.println("No se encontró: " + rutaImagen);
+            return;
+        }
+
+        // URI + anti-cache
+        String fileUri = svgFile.toURI().toString() + "?t=" + System.currentTimeMillis();
+        System.out.println("Cargando SVG desde: " + fileUri);
+
+        WebEngine engine = imagenAutomata.getEngine();
+
+        // limpiar antes
+        engine.load("about:blank");
+
+        String html = """
+        <html>
+            <body style="margin:0; padding:0; background:white;">
+                <img src="%s" style="width:100%%; height:auto; display:block;" />
+            </body>
+        </html>
+        """.formatted(fileUri);
+
+        engine.loadContent(html);
+    }
+
+    void mostrarApImagen(AP ap) throws IOException {
+
+        AutomataRenderer.renderAutomata(ap);
+
+        String userHome = System.getProperty("user.home");
+        String rutaImagen = userHome + "/.automatas/img/automata.svg";
+        File svgFile = new File(rutaImagen);
+
+        if (!svgFile.exists()) {
+            System.err.println("No se encontró: " + rutaImagen);
+            return;
+        }
+
+        // URI + anti-cache
+        String fileUri = svgFile.toURI().toString() + "?t=" + System.currentTimeMillis();
+        System.out.println("Cargando SVG desde: " + fileUri);
+
+        WebEngine engine = imagenAutomata.getEngine();
+
+        // limpiar antes
+        engine.load("about:blank");
+
+        String html = """
+        <html>
+            <body style="margin:0; padding:0; background:white;">
+                <img src="%s" style="width:100%%; height:auto; display:block;" />
+            </body>
+        </html>
+        """.formatted(fileUri);
+
+        engine.loadContent(html);
+    }
+
     // ----------------------------------------------------
     //      MÉTODO: Crear autómata manualmente
     // ----------------------------------------------------
@@ -165,110 +225,138 @@ public class MainController {
         }
     }
 
-@FXML
-private void onCrearDesdeRegex() {
-    // Crear un diálogo personalizado con dos campos
-    Dialog<Pair<String, String>> dialog = new Dialog<>();
-    dialog.setTitle("Crear desde lenguaje");
-    dialog.setHeaderText("Ingrese los valores");
+    @FXML
+    private void onCrearDesdeRegex() {
+        // Crear un diálogo personalizado con dos campos
+        Dialog<Pair<String, String>> dialog = new Dialog<>();
+        dialog.setTitle("Crear desde lenguaje");
+        dialog.setHeaderText("Ingrese los valores");
 
-    ButtonType okButtonType = new ButtonType("Aceptar", ButtonBar.ButtonData.OK_DONE);
-    dialog.getDialogPane().getButtonTypes().addAll(okButtonType, ButtonType.CANCEL);
+        ButtonType okButtonType = new ButtonType("Aceptar", ButtonBar.ButtonData.OK_DONE);
+        dialog.getDialogPane().getButtonTypes().addAll(okButtonType, ButtonType.CANCEL);
 
-    // Campos de texto
-    TextField regexField = new TextField();
-    regexField.setPromptText("Lenguaje");
+        // Campos de texto
+        TextField regexField = new TextField();
+        regexField.setPromptText("Lenguaje");
 
-    TextField extraField = new TextField();
-    extraField.setPromptText("Condiciones");
+        TextField extraField = new TextField();
+        extraField.setPromptText("Condiciones");
 
-    // Layout
-    GridPane grid = new GridPane();
-    grid.setHgap(10);
-    grid.setVgap(10);
+        // Layout
+        GridPane grid = new GridPane();
+        grid.setHgap(10);
+        grid.setVgap(10);
 
-    grid.add(new Label("Lenguaje:"), 0, 0);
-    grid.add(regexField, 1, 0);
+        grid.add(new Label("Lenguaje:"), 0, 0);
+        grid.add(regexField, 1, 0);
 
-    grid.add(new Label("Condiciones:"), 0, 1);
-    grid.add(extraField, 1, 1);
+        grid.add(new Label("Condiciones:"), 0, 1);
+        grid.add(extraField, 1, 1);
 
-    dialog.getDialogPane().setContent(grid);
+        dialog.getDialogPane().setContent(grid);
 
-    dialog.setResultConverter(dialogButton -> {
-        if (dialogButton == okButtonType) {
-            return new Pair<>(regexField.getText(), extraField.getText());
-        }
-        return null;
-    });
+        dialog.setResultConverter(dialogButton -> {
+            if (dialogButton == okButtonType) {
+                return new Pair<>(regexField.getText(), extraField.getText());
+            }
+            return null;
+        });
 
-    Optional<Pair<String, String>> resultado = dialog.showAndWait();
+        Optional<Pair<String, String>> resultado = dialog.showAndWait();
 
-    resultado.ifPresent(pair -> {
-        String expresion = pair.getKey();
-        String condicion = pair.getValue(); 
+        resultado.ifPresent(pair -> {
+            String expresion = pair.getKey();
+            String condicion = pair.getValue();
 
-        try {
-            
-            LanguageParser pl = new LanguageParser(expresion, condicion);
-            // Parsear la expresión regular
-            RegexParser parser = new RegexParser(pl.parse());
-            RegexAST.Node ast = parser.parse();
+            try {
 
-            // Construir AFND usando Thompson
-            ThompsonConstructor thompson = new ThompsonConstructor();
-            AFND afnd = thompson.convert(ast);
+                LanguageParser pl = new LanguageParser(expresion, condicion);
+                // Parsear la expresión regular
+                RegexParser parser = new RegexParser(pl.parse());
+                RegexAST.Node ast = parser.parse();
 
-            // Actualizar visualización
-            this.automataActual = afnd;
-            String userHome = System.getProperty("user.home");
-            String rutaCSV = userHome + "/.automatas/csv/afd.csv";
-            mostrarAutomataImagen(new File(rutaCSV));
+                // Construir AFND usando Thompson
+                ThompsonConstructor thompson = new ThompsonConstructor();
+                AFND afnd = thompson.convert(ast);
 
-            btnMinimizar.setDisable(false);
+                // Actualizar visualización
+                this.automataActual = afnd;
+                String userHome = System.getProperty("user.home");
+                String rutaCSV = userHome + "/.automatas/csv/afd.csv";
+                mostrarAutomataImagen(afnd);
 
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    });
-}
+                btnMinimizar.setDisable(false);
 
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        });
+    }
 
-@FXML
-private void onConstruirAP() {
-    // Crear diálogo para ingresar la expresión
-    TextInputDialog dialog = new TextInputDialog("a^n b^n");
-    dialog.setTitle("Crear AP desde Expresión");
-    dialog.setHeaderText("Ingrese una expresión de lenguaje libre de contexto");
-    dialog.setContentText("Expresión:");
-   
-    
-    Optional<String> resultado = dialog.showAndWait();
-    
-    resultado.ifPresent(expresion -> {
-        try {
-            // 1. Parsear la expresión a gramática
-            GLC gramatica = CFExpressionParser.parse(expresion);
-            
-            // 2. Convertir gramática a AP
-            AP automata = GLCtoAP.convertirGramatica(gramatica);
-            
-            // 3. Guardar y visualizar
-            this.automataActual = automata;
-            String userHome = System.getProperty("user.home");
-            String rutaCSV = userHome + "/.automatas/csv/afd.csv";
-            mostrarAutomataImagen(new File(rutaCSV));
-            
-            // 5. Mostrar información
-            
-        } catch (IllegalArgumentException e) {
-            
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    });
-}
+    @FXML
+    private void onTest() {
+        TextInputDialog dialog = new TextInputDialog("aabb");
+        dialog.setTitle("Comprobar palabra");
+        dialog.setHeaderText("Ingrese una palabra");
+        dialog.setContentText("Palabra:");
+        Optional<String> resultado = dialog.showAndWait();
+        
+          resultado.ifPresent(expresion -> {
+            try {
+                
+                mensaje("La palabra " + expresion + (automataActual.acepta(expresion)? " es valida": " NO es valida"));
+                
+            } catch (IllegalArgumentException e) {
 
+            } catch (Exception ex) {
+                System.getLogger(MainController.class.getName()).log(System.Logger.Level.ERROR, (String) null, ex);
+            }
+        });
+
+    }
+
+    private void mensaje(String cadena) {
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setHeaderText("Resultado");
+        alert.setContentText(cadena);
+        alert.showAndWait();
+    }
+
+    @FXML
+    private void onConstruirAP() {
+        // Crear diálogo para ingresar la expresión
+        TextInputDialog dialog = new TextInputDialog("a^n b^n");
+        dialog.setTitle("Crear AP desde Expresión");
+        dialog.setHeaderText("Ingrese un lenguaje");
+        dialog.setContentText("Expresión:");
+        Optional<String> resultado = dialog.showAndWait();
+
+        resultado.ifPresent(expresion -> {
+            try {
+                // 1. Parsear la expresión a gramática
+
+                // 2. Convertir gramática a AP
+                AP automata = GeneradorAP.generar(expresion);
+
+                // 3. Guardar y visualizar
+                this.automataActual = automata;
+                String userHome = System.getProperty("user.home");
+                String rutaCSV = userHome + "/.automatas/csv/ap.csv";
+
+                EscritorAutomata.guardarAP(automata, rutaCSV);
+
+                mostrarAutomataImagen(automata);
+
+                // 5. Mostrar información
+            } catch (IllegalArgumentException e) {
+
+            } catch (IOException e) {
+                e.printStackTrace();
+            } catch (Exception ex) {
+                System.getLogger(MainController.class.getName()).log(System.Logger.Level.ERROR, (String) null, ex);
+            }
+        });
+    }
 
     // ----------------------------------------------------
     //                Habilitar botones
@@ -375,6 +463,5 @@ private void onConstruirAP() {
             //mostrarError("Error al convertir a AFD: " + e.getMessage());
         }
     }
-
 
 }
