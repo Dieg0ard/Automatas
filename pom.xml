@@ -17,7 +17,6 @@
     </properties>
 
     <dependencies>
-        <!-- Dependencia que SI existe -->
         <dependency>
             <groupId>guru.nidi</groupId>
             <artifactId>graphviz-java</artifactId>
@@ -116,18 +115,25 @@
 
     </profiles>
     
-    <build> 
-        <plugins> 
-            <plugin> 
-                <groupId>org.openjfx</groupId> 
-                <artifactId>javafx-maven-plugin</artifactId> 
-                <version>0.0.8</version> 
-                <configuration> 
-                    <mainClass>automatas.ui.MainApp</mainClass> 
-                </configuration> 
-            </plugin> 
-        </plugins> 
-    </build>
+<build>
+    <plugins>
+        <plugin>
+            <groupId>org.openjfx</groupId>
+            <artifactId>javafx-maven-plugin</artifactId>
+            <version>0.0.8</version>
+            <configuration>
+                <mainClass>automatas.ui.MainApp</mainClass>
+                <modules>
+                    <module>javafx.controls</module>
+                    <module>javafx.fxml</module>
+                    <module>javafx.graphics</module>
+                    <module>javafx.web</module>
+                </modules>
+            </configuration>
+        </plugin>
+    </plugins>
+</build>
+
 
 
 </project>

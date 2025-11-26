@@ -58,25 +58,38 @@
                     text="Minimizar AFD"
                     onAction="#onMinimizar"
                     prefWidth="180"/>
+            
+            <Separator />
+            
+            <Button fx:id="btnTest"
+                                text="Comprobar Palabra"
+                                onAction="#onTest"
+                                prefWidth="180"/>
         </VBox>
     </left>
     
     <!-- PANEL CENTRAL: Imagen del Autómata -->
-   <center>
-    <ScrollPane fitToWidth="true" fitToHeight="true" pannable="true">
-        <content>
-            <StackPane alignment="CENTER">
-                <!--
-                <ImageView fx:id="imagenAutomata"
-                           preserveRatio="true"
-                           fitWidth="800"
-                           smooth="true"/>
-                -->
-                <WebView fx:id="imagenAutomata"
-                         prefWidth="800"
-                         prefHeight="600" />
-            </StackPane>
-        </content>
-    </ScrollPane>
-</center>
+    <center>
+        <ScrollPane fitToWidth="true" fitToHeight="true" pannable="true">
+            <content>
+                <StackPane alignment="CENTER">
+                    <!--
+                    <ImageView fx:id="imagenAutomata"
+                               preserveRatio="true"
+                               fitWidth="800"
+                               smooth="true"/>
+                    -->
+                    <WebView fx:id="imagenAutomata"
+                             prefWidth="800"
+                             prefHeight="600" />
+                 
+               
+                </StackPane>
+            
+                    
+                
+            
+            </content>
+        </ScrollPane>
+    </center>
 </BorderPane>

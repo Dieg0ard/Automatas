@@ -8,51 +8,87 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 public class EscritorAutomata {
     
-    public static void guardarAP(AP ap, String rutaArchivo) throws IOException {
+public static void guardarAP(AP ap, String rutaArchivo) throws IOException {
+
     File archivo = new File(rutaArchivo);
-    // Crear directorios padre si no existen
+
     if (archivo.getParentFile() != null) {
         archivo.getParentFile().mkdirs();
     }
-    
+
     try (BufferedWriter writer = new BufferedWriter(new FileWriter(archivo))) {
-        // Estado inicial
+
         writer.write("#INICIAL," + ap.getEstadoInicial());
         writer.newLine();
-        
-        // Estados finales
+
         writer.write("#FINALES," + String.join(",", ap.getEstadosFinales()));
         writer.newLine();
-        
-        // Símbolo inicial de pila
-        writer.write("#SIMBOLO_PILA," + ap.getSimboloInicialPila());
         writer.newLine();
-        
-        // Modo de aceptación
-        writer.write("#ACEPTA_POR," + (ap.aceptaPorEstadoFinal() ? "ESTADO_FINAL" : "PILA_VACIA"));
-        writer.newLine();
-        
-        writer.newLine();
-        
-        // Transiciones: origen,simboloEntrada,topePila,destino,reemplazo
-        for (AP.Transicion t : ap.getTransiciones()) {
-            String entrada = t.getSimboloEntrada() == null ? "ε" : t.getSimboloEntrada().toString();
-            String reemplazo = t.getReemplazoEnPila().isEmpty() ? "ε" : t.getReemplazoEnPila();
-            
-            writer.write(t.getEstadoOrigen() + "," + 
-                        entrada + "," + 
-                        t.getTopePila() + "," + 
-                        t.getEstadoDestino() + "," + 
-                        reemplazo);
-            writer.newLine();
+
+        // Obtener transiciones
+        Map<?, ?> transiciones = ap.getTransiciones();
+
+        for (var entry : transiciones.entrySet()) {
+
+            Object keyObj = entry.getKey();
+            Object valoresObj = entry.getValue();
+
+            // ==== ACCEDER A CAMPOS PRIVADOS ====
+            var keyClass = keyObj.getClass();
+
+            var fEstado = keyClass.getDeclaredField("estado");
+            var fEntrada = keyClass.getDeclaredField("simboloEntrada");
+            var fPila = keyClass.getDeclaredField("simboloPila");
+
+            fEstado.setAccessible(true);
+            fEntrada.setAccessible(true);
+            fPila.setAccessible(true);
+
+            String estado = (String) fEstado.get(keyObj);
+            Character simboloEntrada = (Character) fEntrada.get(keyObj);
+            char simboloPila = (char) fPila.get(keyObj);
+
+            @SuppressWarnings("unchecked")
+            List<Object> listaValores = (List<Object>) valoresObj;
+
+            for (Object valObj : listaValores) {
+                var valClass = valObj.getClass();
+
+                var fSig = valClass.getDeclaredField("estadoSiguiente");
+                var fRep = valClass.getDeclaredField("cadenaReemplazo");
+
+                fSig.setAccessible(true);
+                fRep.setAccessible(true);
+
+                String estadoSig = (String) fSig.get(valObj);
+                String reemplazo = (String) fRep.get(valObj);
+
+                writer.write(
+                    estado + "," +
+                    (simboloEntrada == null ? "ε" : simboloEntrada) + "," +
+                    simboloPila + "," +
+                    estadoSig + "," +
+                    (reemplazo.isEmpty() ? "ε" : reemplazo)
+                );
+
+                writer.newLine();
+            }
         }
+
+    } catch (ReflectiveOperationException e) {
+        throw new IOException("Error al extraer datos internos del AP", e);
     }
 }
+
+
+
+
 
     public static void guardarAFD(AFD afd, String rutaArchivo) throws IOException {
         afd.mostrar();
@@ -84,6 +120,8 @@ public class EscritorAutomata {
             }
         }
     }
+    
+
 
     public static void guardarAFND(AFND afnd, String rutaArchivo) throws IOException {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(rutaArchivo))) {
