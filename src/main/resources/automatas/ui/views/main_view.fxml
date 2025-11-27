@@ -8,7 +8,8 @@
             xmlns:fx="http://javafx.com/fxml"
             fx:controller="automatas.ui.controllers.MainController"
             prefWidth="1000"
-            prefHeight="600">
+            prefHeight="600"
+            stylesheets="@/styles/style.css">
     <!-- PANEL IZQUIERDO -->
     <left>
         <VBox spacing="20" alignment="TOP_CENTER">

@@ -1,0 +1,96 @@
+/*
+Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+Click nbfs://nbhost/SystemFileSystem/Templates/Other/CascadeStyleSheet.css to edit this template
+*/
+/* 
+    Created on : 26/11/2025, 7:07:03 p. m.
+    Author     : USUARIO
+*/
+
+
+/* ======== ESTILOS GENERALES ======== */
+
+.root {
+    -fx-background-color: linear-gradient(to bottom right, #f3e8ff, #ede9fe);
+    -fx-font-family: "Segoe UI";
+    -fx-font-size: 14px;
+    -fx-text-fill: #3b3054;
+}
+
+/* ======== BOTONES ======== */
+
+.button {
+    -fx-background-color: #8b5cf6;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-padding: 8 16;
+    -fx-background-radius: 8;
+    -fx-cursor: hand;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.15), 4, 0, 0, 2);
+}
+
+.button:hover {
+    -fx-background-color: #a78bfa;
+}
+
+.button:pressed {
+    -fx-background-color: #6d28d9;
+}
+
+/* ======== LABELS ======== */
+
+.label {
+    -fx-text-fill: #3b3054;
+}
+
+/* ======== TITULOS GRANDES ======== */
+
+.title {
+    -fx-font-size: 22px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #6d28d9;
+}
+
+/* ======== TEXTFIELDS ======== */
+
+.text-field, .password-field {
+    -fx-background-color: white;
+    -fx-border-color: #c4b5fd;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-padding: 6 8;
+}
+
+.text-field:focused, .password-field:focused {
+    -fx-border-color: #8b5cf6;
+    -fx-border-width: 2;
+}
+
+/* ======== TABLEVIEW ======== */
+
+.table-view {
+    -fx-background-color: #ffffffaa;
+    -fx-border-color: #ddd6fe;
+}
+
+.table-view .column-header {
+    -fx-background-color: #e9d5ff;
+    -fx-font-weight: bold;
+    -fx-text-fill: #3b3054;
+}
+
+.table-view .cell {
+    -fx-text-fill: #3b3054;
+}
+
+/* ======== PANELES ======== */
+
+.pane,
+.anchor-pane,
+.hbox,
+.vbox,
+.border-pane {
+    -fx-background-color: rgba(255, 255, 255, 0.6);
+    -fx-background-radius: 12;
+    -fx-padding: 12;
+}

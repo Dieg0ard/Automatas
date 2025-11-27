@@ -5,7 +5,8 @@
 
 <BorderPane xmlns="http://javafx.com/javafx/21"
             xmlns:fx="http://javafx.com/fxml/1"
-            fx:controller="automatas.ui.controllers.AutomataManualController">
+            fx:controller="automatas.ui.controllers.AutomataManualController"
+            stylesheets="@/styles/style.css">
 
     <center>
         <VBox spacing="12">

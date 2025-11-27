@@ -15,7 +15,7 @@ public class MainApp extends Application {
         stage.setTitle("Procesador de Autómatas");
         stage.setScene(scene);
         stage.show();
-
+        
     }
 
     public static void main(String[] args) {
