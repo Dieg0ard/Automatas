@@ -1,5 +1,9 @@
 package automatas.ui.controllers;
 
+import java.io.File;
+import java.io.IOException;
+import java.util.Optional;
+
 import automatas.algoritmos.Conversion;
 import automatas.core.AFD;
 import automatas.core.AFND;
@@ -13,30 +17,25 @@ import automatas.regex.RegexAST;
 import automatas.regex.RegexParser;
 import automatas.regex.ThompsonConstructor;
 import automatas.visual.AutomataRenderer;
-
 import javafx.fxml.FXML;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.image.ImageView;
-import javafx.stage.FileChooser;
-import javafx.stage.Stage;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.Optional;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
+import javafx.scene.control.Button;
 import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Dialog;
+import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TextInputDialog;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.GridPane;
 import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
+import javafx.stage.FileChooser;
 import javafx.stage.Modality;
+import javafx.stage.Stage;
 import javafx.util.Pair;
 
 public class MainController {
@@ -205,15 +204,16 @@ public class MainController {
             );
 
             Parent root = loader.load();
-
+     
             // Obtener el controller de la ventana cargada
             AutomataManualController ctrl = loader.getController();
 
             // Pasar la referencia del MainController (this)
             ctrl.setMainController(this);
-
+           
             Stage stage = new Stage();
             stage.setTitle("Crear Autómata Manualmente");
+            
             stage.setScene(new Scene(root));
             stage.initModality(Modality.APPLICATION_MODAL);
             stage.show();
@@ -230,6 +230,12 @@ public class MainController {
         // Crear un diálogo personalizado con dos campos
         Dialog<Pair<String, String>> dialog = new Dialog<>();
         dialog.setTitle("Crear desde lenguaje");
+        
+        dialog.getDialogPane().getStylesheets().add(
+        getClass().getResource("/styles/style.css").toExternalForm()
+);
+        dialog.getDialogPane().getStyleClass().add("custom-dialog");
+        
         dialog.setHeaderText("Ingrese los valores");
 
         ButtonType okButtonType = new ButtonType("Aceptar", ButtonBar.ButtonData.OK_DONE);
@@ -297,6 +303,12 @@ public class MainController {
     private void onTest() {
         TextInputDialog dialog = new TextInputDialog("aabb");
         dialog.setTitle("Comprobar palabra");
+        
+        dialog.getDialogPane().getStylesheets().add(
+        getClass().getResource("/styles/style.css").toExternalForm()
+);
+        dialog.getDialogPane().getStyleClass().add("custom-dialog");
+        
         dialog.setHeaderText("Ingrese una palabra");
         dialog.setContentText("Palabra:");
         Optional<String> resultado = dialog.showAndWait();
@@ -327,6 +339,12 @@ public class MainController {
         // Crear diálogo para ingresar la expresión
         TextInputDialog dialog = new TextInputDialog("a^n b^n");
         dialog.setTitle("Crear AP desde Expresión");
+        
+        dialog.getDialogPane().getStylesheets().add(
+        getClass().getResource("/styles/style.css").toExternalForm()
+);
+        dialog.getDialogPane().getStyleClass().add("custom-dialog");
+        
         dialog.setHeaderText("Ingrese un lenguaje");
         dialog.setContentText("Expresión:");
         Optional<String> resultado = dialog.showAndWait();
